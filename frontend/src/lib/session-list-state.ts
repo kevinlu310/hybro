@@ -1,4 +1,4 @@
-// The Sessions ticket list's search, column filters, and sort, kept in the URL
+// The Inbox ticket list's search, column filters, and sort, kept in the URL
 // so Back, refresh, and shared links return to the same view.
 import type { SessionState, SessionSummary } from '@/lib/api/session'
 

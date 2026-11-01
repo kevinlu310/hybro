@@ -43,7 +43,7 @@ beforeEach(() => {
 afterEach(cleanup)
 
 function rows() {
-  const [, ...body] = within(screen.getByRole('table', { name: 'Sessions' })).getAllByRole('row')
+  const [, ...body] = within(screen.getByRole('table', { name: 'Inbox' })).getAllByRole('row')
   return body.map(row => within(row).queryByRole('link')?.textContent)
 }
 
@@ -51,7 +51,7 @@ describe('SessionsTablePage', () => {
   it('lists sessions as tickets with name, status, requester, and times', () => {
     render(<SessionsTablePage />)
 
-    expect(screen.getByRole('heading', { level: 1, name: 'Sessions' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1, name: 'Inbox' })).toBeInTheDocument()
     for (const name of ['Name', 'Status', 'Requester', 'Created', 'Updated']) {
       expect(screen.getByRole('columnheader', { name: new RegExp(name) })).toBeInTheDocument()
     }

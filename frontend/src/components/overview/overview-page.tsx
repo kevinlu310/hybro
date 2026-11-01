@@ -146,20 +146,20 @@ export function OverviewPage() {
           {loading ? Array.from({ length: 4 }, (_, index) => <Skeleton key={index} className="h-[100px] rounded-xl" />) : (
             <>
               <Tile
-                label="Sessions"
-                value={metrics.sessions.open}
-                detail={metrics.sessions.waiting ? `${metrics.sessions.waiting} need you` : 'Open'}
-                attention={metrics.sessions.waiting > 0}
-                tone="text-icon-create"
-                href={metrics.sessions.waiting ? `${routes.sessions}?status=waiting_on_owner` : routes.sessions}
-              />
-              <Tile
                 label="Chats"
                 value={metrics.rooms.total}
                 detail={metrics.rooms.needsInput ? `${metrics.rooms.needsInput} need input` : `${metrics.rooms.running} running`}
                 attention={metrics.rooms.needsInput > 0}
                 tone="text-icon-create"
                 href={routes.chat}
+              />
+              <Tile
+                label="Inbox"
+                value={metrics.sessions.open}
+                detail={metrics.sessions.waiting ? `${metrics.sessions.waiting} need you` : 'Open'}
+                attention={metrics.sessions.waiting > 0}
+                tone="text-icon-create"
+                href={metrics.sessions.waiting ? `${routes.sessions}?status=waiting_on_owner` : routes.sessions}
               />
               <Tile
                 label="Agents"
@@ -181,20 +181,6 @@ export function OverviewPage() {
           )}
         </div>
 
-        <Section id="sessions-heading" title="Recent sessions" action={<ViewAll href={routes.sessions}>All sessions</ViewAll>}>
-          <ListCard loading={sessionList.isLoading} empty="No sessions yet. A client opens one through MCP or the Sessions API.">
-            {recentSessions(sessions, RECENT).map(session => (
-              <ActivityRow
-                key={session.session_id}
-                href={routes.session(session.session_id)}
-                title={sessionName(session)}
-                meta={[session.client_label, sessionAgentNames(session.agents), formatSessionTime(session.last_activity_at)].filter(Boolean).join(' · ')}
-                status={sessionStateView(session.state)}
-              />
-            ))}
-          </ListCard>
-        </Section>
-
         <Section id="chats-heading" title="Recent chats" action={<ViewAll href={routes.chat}>All chats</ViewAll>}>
           <ListCard loading={history.isLoading} empty="Start a chat to try several agents at once.">
             {recentRooms(rooms, RECENT).map(room => (
@@ -204,6 +190,20 @@ export function OverviewPage() {
                 title={room.title}
                 meta={formatSessionTime(room.last_activity_at)}
                 status={roomStatusView(room.status)}
+              />
+            ))}
+          </ListCard>
+        </Section>
+
+        <Section id="inbox-heading" title="Inbox" action={<ViewAll href={routes.sessions}>Open inbox</ViewAll>}>
+          <ListCard loading={sessionList.isLoading} empty="No sessions yet. A client opens one through MCP or the Sessions API.">
+            {recentSessions(sessions, RECENT).map(session => (
+              <ActivityRow
+                key={session.session_id}
+                href={routes.session(session.session_id)}
+                title={sessionName(session)}
+                meta={[session.client_label, sessionAgentNames(session.agents), formatSessionTime(session.last_activity_at)].filter(Boolean).join(' · ')}
+                status={sessionStateView(session.state)}
               />
             ))}
           </ListCard>

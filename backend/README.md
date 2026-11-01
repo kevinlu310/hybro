@@ -66,7 +66,7 @@ runtime architecture.
 ## Agent-network API
 
 These endpoints let an authenticated client discover visible registered agents
-and send one A2A message without creating a room. The frontend's **Connect > API**
+and send one A2A message without creating a room. The frontend's **Access > API**
 (`/connect/api`) page provides copyable request examples; existing room chat continues to use its
 authenticated REST/SSE workflow.
 
@@ -286,7 +286,7 @@ Implementation ownership and protocol inventory are documented in
 A session is a conversation a client of the instance owner opens with the
 owner's agents. Each message names one agent; every turn is recorded in Hybro;
 when an agent needs the owner's permission, the owner approves or rejects in the
-app (**Sessions** in the sidebar). Under local `backend.auth_mode="mock"` the
+app (**Inbox** in the sidebar). Under local `backend.auth_mode="mock"` the
 client and the owner share one identity, so the separation is a presentation
 rule.
 
@@ -363,7 +363,7 @@ http://localhost:3000/mcp
 From a checkout, use `http://localhost:3100/mcp`.
 
 This URL is for clients on the machine running Hybro, not a remote browser's
-machine. **Connect** (`/connect/mcp`) in the app copies the URL and per-assistant
+machine. **Access** (`/connect/mcp`) in the app copies the URL and per-assistant
 setup snippets, such as the Claude Code `mcpServers` configuration
 (`type: "http"`); the snippets can also be selected and copied manually. It does
 not check status, control services, relay tool calls, or automatically

@@ -416,7 +416,7 @@ export function SessionRecordView({ sessionId }: { sessionId: string }) {
 
   const back = (
     <Link href={backHref} className="inline-flex w-fit items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
-      <ArrowLeft className="size-4" aria-hidden="true" />Sessions
+      <ArrowLeft className="size-4" aria-hidden="true" />Inbox
     </Link>
   )
 

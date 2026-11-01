@@ -41,7 +41,7 @@ async function sessionState(request: APIRequestContext, sessionId: string): Prom
   return resp.json()
 }
 
-test.describe('Sessions', () => {
+test.describe('Inbox', () => {
   test.setTimeout(180_000)
 
   test('owner approves a client session in the app', async ({ page, request }) => {
@@ -64,13 +64,13 @@ test.describe('Sessions', () => {
       .toBe('waiting_on_owner')
 
     await page.goto('/sessions')
-    await expect(page.getByRole('link', { name: /^Sessions, \d+ need input/ })).toBeVisible({ timeout: 30_000 })
+    await expect(page.getByRole('link', { name: /^Inbox, \d+ need input/ })).toBeVisible({ timeout: 30_000 })
     // The ticket list: filter by status, search, and open the ticket.
     await page.getByRole('button', { name: 'Filter by status' }).click()
     await page.getByRole('menuitemcheckbox', { name: 'Needs you' }).click()
     await page.keyboard.press('Escape')
     await page.getByRole('searchbox', { name: 'Search sessions' }).fill(label)
-    const table = page.getByRole('table', { name: 'Sessions' })
+    const table = page.getByRole('table', { name: 'Inbox' })
     await expect(table.getByRole('row')).toHaveCount(2)
     await expect(table.getByRole('cell', { name: label, exact: true })).toBeVisible()
     await table.getByRole('link', { name: 'Generate a travel plan' }).click()
@@ -111,8 +111,8 @@ test.describe('Sessions', () => {
     await expect(thread.getByText(/^replied/)).toBeVisible({ timeout: 30_000 })
 
     // Back returns to the same filtered list. Scope to the page: the sidebar
-    // link is also named "Sessions" once no session waits on the owner.
-    await page.getByRole('main').getByRole('link', { name: 'Sessions', exact: true }).click()
+    // link is also named "Inbox" once no session waits on the owner.
+    await page.getByRole('main').getByRole('link', { name: 'Inbox', exact: true }).click()
     await expect(page.getByRole('searchbox', { name: 'Search sessions' })).toHaveValue(label)
     await expect(page).toHaveURL(/status=waiting_on_owner/)
 

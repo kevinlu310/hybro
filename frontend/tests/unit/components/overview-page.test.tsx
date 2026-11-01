@@ -31,14 +31,14 @@ describe('OverviewPage', () => {
     expect(screen.getByRole('link', { name: 'Add agent' })).toHaveAttribute('href', '/network/agents/new')
   })
 
-  it('shows clickable tiles with Sessions before Chats', () => {
+  it('shows clickable tiles in the side-menu order, Chats before Inbox', () => {
     render(<OverviewPage />)
-    const tiles = screen.getAllByRole('link', { name: /^(Sessions|Chats|Agents|MCP gateway),/ })
-    expect(tiles.map(tile => tile.getAttribute('aria-label')?.split(',')[0])).toEqual(['Sessions', 'Chats', 'Agents', 'MCP gateway'])
-    expect(tiles[0]).toHaveAttribute('href', '/sessions?status=waiting_on_owner')
-    expect(tiles[0]).toHaveTextContent('1 need you')
-    expect(tiles[1]).toHaveAttribute('href', '/chat')
-    expect(tiles[1]).toHaveTextContent('1 need input')
+    const tiles = screen.getAllByRole('link', { name: /^(Chats|Inbox|Agents|MCP gateway),/ })
+    expect(tiles.map(tile => tile.getAttribute('aria-label')?.split(',')[0])).toEqual(['Chats', 'Inbox', 'Agents', 'MCP gateway'])
+    expect(tiles[0]).toHaveAttribute('href', '/chat')
+    expect(tiles[0]).toHaveTextContent('1 need input')
+    expect(tiles[1]).toHaveAttribute('href', '/sessions?status=waiting_on_owner')
+    expect(tiles[1]).toHaveTextContent('1 need you')
     expect(tiles[2]).toHaveAttribute('href', '/network')
     expect(tiles[3]).toHaveAttribute('href', '/connect/mcp')
   })
@@ -46,8 +46,8 @@ describe('OverviewPage', () => {
   it('colors each tile number like its side-menu icon and keeps the gateway tile short', () => {
     render(<OverviewPage />)
     const number = (label: string) => screen.getByRole('link', { name: new RegExp(`^${label},`) }).querySelector('.text-2xl')
-    expect(number('Sessions')).toHaveClass('text-icon-create')
     expect(number('Chats')).toHaveClass('text-icon-create')
+    expect(number('Inbox')).toHaveClass('text-icon-create')
     expect(number('Agents')).toHaveClass('text-icon-network')
     expect(number('MCP gateway')).toHaveClass('text-hybro-bro')
     expect(number('MCP gateway')).toHaveTextContent('Ready')
@@ -57,8 +57,8 @@ describe('OverviewPage', () => {
   it('stacks the sections line by line with Most-called agents last', () => {
     render(<OverviewPage />)
     expect(screen.getAllByRole('heading', { level: 2 }).map(heading => heading.textContent)).toEqual([
-      'Recent sessions',
       'Recent chats',
+      'Inbox',
       'Network',
       'Most-called agents',
     ])

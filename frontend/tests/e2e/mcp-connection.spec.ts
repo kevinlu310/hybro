@@ -1,11 +1,11 @@
 import { expect, test } from '@playwright/test'
 
 for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 844 }]) {
-  test(`Connect page stays readable and copyable at ${viewport.width}px`, async ({ page, context }, testInfo) => {
+  test(`Access page stays readable and copyable at ${viewport.width}px`, async ({ page, context }, testInfo) => {
     await context.grantPermissions(['clipboard-read', 'clipboard-write'])
     await page.setViewportSize(viewport)
     await page.goto('/connect/mcp')
-    await expect(page.getByRole('heading', { level: 1, name: 'Connect' })).toBeVisible()
+    await expect(page.getByRole('heading', { level: 1, name: 'Access' })).toBeVisible()
     await expect(page.getByRole('tab', { name: 'MCP' })).toHaveAttribute('aria-selected', 'true')
     await page.getByRole('button', { name: 'Copy address' }).click()
     await expect(page.getByText('Address copied', { exact: true })).toBeVisible()

@@ -115,7 +115,7 @@ describe('SessionRecordView', () => {
   it('returns to the list view the owner came from', async () => {
     window.sessionStorage.setItem(SESSION_LIST_QUERY_STORAGE_KEY, 'status=waiting_on_owner')
     render(<SessionRecordView sessionId="sess-1" />)
-    await waitFor(() => expect(screen.getByRole('link', { name: 'Sessions' })).toHaveAttribute('href', '/sessions?status=waiting_on_owner'))
+    await waitFor(() => expect(screen.getByRole('link', { name: 'Inbox' })).toHaveAttribute('href', '/sessions?status=waiting_on_owner'))
     window.sessionStorage.removeItem(SESSION_LIST_QUERY_STORAGE_KEY)
   })
 
