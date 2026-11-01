@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0](https://github.com/hybroai/hybro/compare/v0.3.0...v0.4.0) (2026-11-01)
+
+
+### ⚠ BREAKING CHANGES
+
+* single-image install and browser setup for 0.4.0
+
+### Features
+
+* **llm-gateway:** support gpt-image-1-mini as an OpenAI image model ([d96aa7f](https://github.com/hybroai/hybro/commit/d96aa7f5b8e8edfeb2cf25dad029e88d44791b6f))
+* redesign setup UI for the model provider ([7d942c1](https://github.com/hybroai/hybro/commit/7d942c1c4113ce1cebad82c30abe4802891bec00))
+* single-image install and browser setup for 0.4.0 ([ed45f87](https://github.com/hybroai/hybro/commit/ed45f87d0fc64ae7d11b8dbf3ec90253013011ae))
+
+
+### Bug Fixes
+
+* **cli:** write the port range check as an if for shellcheck ([614aa05](https://github.com/hybroai/hybro/commit/614aa0532d4f4cc1c86855b1068d2736b51ccf79))
+* **delivery:** accept local broadcasts without Redis so sessions can park on HITL ([65eae0a](https://github.com/hybroai/hybro/commit/65eae0a02a1399b8a7364e577b9a642c42ec92d3))
+* keep the settings dialog size fixed across tabs ([4ef97ce](https://github.com/hybroai/hybro/commit/4ef97ce1bd0990272fb982af27cb076eb3557217))
+* **llm-gateway:** replace retired GPT Image 1 models with GPT Image 2.5 ([fe66318](https://github.com/hybroai/hybro/commit/fe66318955ead3765b228b8231794e815c9bf9ef))
+* **llm-gateway:** replace retired GPT Image 1 models with GPT Image 2.5 ([245219e](https://github.com/hybroai/hybro/commit/245219e1b5f1d1f5e723cc8a6bd504d80d1f1fd2))
+* **orchestrator:** settle interrupted Runs on shutdown without racing the lease release ([970de58](https://github.com/hybroai/hybro/commit/970de58d0606767e6929778e1e29855bf247b4d3)), closes [#205](https://github.com/hybroai/hybro/issues/205)
+
 ## [0.3.0](https://github.com/hybroai/hybro/compare/v0.2.19...v0.3.0) (2026-10-25)
 
 
