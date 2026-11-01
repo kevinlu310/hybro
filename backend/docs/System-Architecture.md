@@ -1845,7 +1845,8 @@ Platform-reserved metadata overrides owner collisions. If a model omits
 `context_refs`, prepared-invocation freezing includes only compatible context
 refs owned by the exact root user message; a non-empty explicit selection stays
 exact, and artifacts or attachments, including those carried from earlier turns,
-are never added implicitly. The frozen
+are never added implicitly. Passthrough Runs skip that implicit context, since
+their `task` is already the user's message verbatim. The frozen
 manifest and digest make this replayable. The model sees earlier calls' `task`
 arguments prefixed with `[historical plan, not evidence]`; `AgentToolInput`
 strips that label from the start of a new `task`, so a copied plan never
