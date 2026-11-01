@@ -209,7 +209,7 @@ async def test_card_or_endpoint_change_changes_binding_digest_only_for_new_run()
     assert first.bindings[0].binding_digest != second.bindings[0].binding_digest
 
 
-async def test_prepared_invocation_reconstructs_from_durable_run_and_binding():
+async def _durable_reader_and_call(profile_id: str = "fast"):
     root_manifest = RunResourceManifestSnapshot(
         manifest_id="root-context",
         refs=[
@@ -240,6 +240,7 @@ async def test_prepared_invocation_reconstructs_from_durable_run_and_binding():
             "run_id": "run-1",
             "tool_catalog": prepared_catalog.snapshot,
             "resource_manifest": root_manifest,
+            "profile": make_run().profile.model_copy(update={"profile_id": profile_id}),
             "request": make_run().request.model_copy(
                 update={"requesting_subject_id": "user-1", "room_epoch": 1}
             ),
@@ -260,6 +261,11 @@ async def test_prepared_invocation_reconstructs_from_durable_run_and_binding():
             )
         }
     )
+    return reader, call, prepared_catalog
+
+
+async def test_prepared_invocation_reconstructs_from_durable_run_and_binding():
+    reader, call, prepared_catalog = await _durable_reader_and_call()
     snapshot = await reader.read_prepared(call)
     assert snapshot is not None
     assert snapshot.requesting_subject_id == "user-1"
@@ -274,6 +280,17 @@ async def test_prepared_invocation_reconstructs_from_durable_run_and_binding():
     assert recovered.resource_manifest.manifest_id == (
         f"call-resources-{recovered.resource_manifest.content_digest}"
     )
+
+
+async def test_passthrough_invocation_does_not_resend_user_text_as_context():
+    # Passthrough forwards the user's text verbatim as ``task``; also
+    # selecting the root user-text context would deliver it to the Agent twice.
+    reader, call, _ = await _durable_reader_and_call("passthrough")
+
+    snapshot = await reader.read_prepared(call)
+
+    assert snapshot is not None
+    assert snapshot.resource_manifest.refs == []
 
 
 async def test_preparation_fails_closed_for_inactive_epoch():

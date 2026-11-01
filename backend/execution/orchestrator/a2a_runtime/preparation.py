@@ -47,13 +47,21 @@ class RunPreparedInvocationSnapshotReader:
             or binding.room_epoch != run.request.room_epoch
         ):
             return None
+        # A passthrough call's ``task`` is already the user's message text
+        # verbatim, so implicitly selecting the root user-text context would
+        # send the same text to the Agent twice.
+        root_context_source_message_id = (
+            None
+            if run.profile.profile_id == "passthrough"
+            else run.request.user_message_id
+        )
         manifest = freeze_call_manifest(
             arguments=invocation.arguments,
             run_manifest=run.resource_manifest,
             binding=binding,
             source_conversation_id=run.conversation_id,
             source_room_epoch=run.request.room_epoch,
-            root_context_source_message_id=run.request.user_message_id,
+            root_context_source_message_id=root_context_source_message_id,
         )
         return PreparedInvocationSnapshot(
             run_id=run.run_id,

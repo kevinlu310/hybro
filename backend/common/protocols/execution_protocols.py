@@ -23,6 +23,7 @@ class ExecutionEngine(Protocol):
         request: ExecutionRequest,
         ack: ExecutionAck,
     ) -> None: ...
+    def is_orchestration_pending(self, message_id: str) -> bool: ...
     async def cancel(
         self,
         conversation_id: str,

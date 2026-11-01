@@ -199,7 +199,9 @@ class SessionFacade:
         outcome = await self._waiter.scan(
             conversation_id, client_request_id, after=after
         )
-        state, _reason = self._resolve(outcome, sent_at=record.last_activity_at)
+        state, _reason = self._resolve(
+            outcome, sent_at=record.last_activity_at, message_id=ack.message_id
+        )
         return self._receipt(
             record,
             client_request_id,
@@ -419,6 +421,7 @@ class SessionFacade:
         state, _reason = self._resolve(
             outcomes.get(earlier.client_request_id) or CorrelatedOutcome(),
             sent_at=earlier.sent_at,
+            message_id=earlier.user_message_id,
         )
         return self._receipt(
             record,
@@ -472,15 +475,26 @@ class SessionFacade:
         outcome: CorrelatedOutcome | None,
         *,
         sent_at: datetime,
+        message_id: str | None,
         closed: bool = False,
     ) -> tuple[SessionState, str | None]:
-        """Client state, giving a just-sent request its start grace."""
+        """Client state, giving a request without run events time to start.
+
+        The run starts in a background task that can outlast the grace under
+        load; while that task runs, the request is still working.
+        """
         if (
             outcome is not None
             and not outcome.seen
             and not closed
-            and (self._now() - sent_at).total_seconds()
-            < self._waiter.start_grace_seconds
+            and (
+                (self._now() - sent_at).total_seconds()
+                < self._waiter.start_grace_seconds
+                or (
+                    message_id is not None
+                    and self._engine.is_orchestration_pending(message_id)
+                )
+            )
         ):
             return "working", None
         return resolve_state(outcome, closed=closed)
@@ -526,7 +540,10 @@ class SessionFacade:
         outcome = await self._outcome(record)
         closed = record.status == "closed"
         state, reason = self._resolve(
-            outcome, sent_at=record.last_activity_at, closed=closed
+            outcome,
+            sent_at=record.last_activity_at,
+            message_id=record.last_user_message_id,
+            closed=closed,
         )
         return SessionOwnerRecord(
             session_id=record.session_id,
@@ -551,7 +568,10 @@ class SessionFacade:
         outcome = await self._outcome(record)
         closed = record.status == "closed"
         state, reason = self._resolve(
-            outcome, sent_at=record.last_activity_at, closed=closed
+            outcome,
+            sent_at=record.last_activity_at,
+            message_id=record.last_user_message_id,
+            closed=closed,
         )
         agents = await self._agents(record)
         history = await self._client_history(record, agents)
@@ -607,6 +627,7 @@ class SessionFacade:
             state, reason = self._resolve(
                 outcome or CorrelatedOutcome(),
                 sent_at=request.sent_at,
+                message_id=request.user_message_id,
                 closed=closed and latest,
             )
             agent_id = _target_agent(user)

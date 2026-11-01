@@ -79,18 +79,6 @@ jobs:
             echo "Requested version $REQUESTED does not match scripts/hybro $script." >&2
             exit 1
           fi
-          # The single image replaced the 0.3 Compose stack. Release Please bumps
-          # only the patch for feat: commits on 0.x, so without a
-          # `Release-As: 0.4.0` footer it would cut 0.3.x from this tree, and the
-          # 0.4.0 compatibility archives that 0.3 CLIs download would be skipped.
-          case "$REQUESTED" in
-            0.3.*)
-              if [ ! -f docker-compose.yml ]; then
-                echo "Version $REQUESTED has no Compose stack; release it as 0.4.0 (Release-As: 0.4.0)." >&2
-                exit 1
-              fi
-              ;;
-          esac
           echo "value=$declared" >> "$GITHUB_OUTPUT"
 
   # Each architecture builds on its own native runner. Emulated arm64 builds ran
@@ -226,29 +214,6 @@ jobs:
           install -m 0755 install.sh dist/install.sh
           (cd dist && sha256sum hybro install.sh > SHA256SUMS)
 
-      # A 0.3 CLI's `hybro upgrade` prints download steps for
-      # hybro-<version>-<platform>.tar.gz and its .sha256, so 0.4.0 publishes
-      # those four archives, each holding the shell script at hybro/hybro.
-      # Later releases publish only the script, install.sh, and SHA256SUMS.
-      - name: Stage the 0.3 compatibility archives
-        if: needs.version.outputs.value == '0.4.0'
-        env:
-          VERSION: ${{ needs.version.outputs.value }}
-        run: |
-          set -eu
-          mkdir -p dist/archive/hybro
-          cp dist/hybro dist/archive/hybro/hybro
-          for platform in darwin-arm64 darwin-x64 linux-arm64 linux-x64; do
-            asset="hybro-${VERSION}-${platform}.tar.gz"
-            tar -czf "dist/$asset" -C dist/archive hybro
-            tar -tzf "dist/$asset" | grep -qx "hybro/hybro" || {
-              echo "$asset does not contain hybro/hybro" >&2
-              exit 1
-            }
-            (cd dist && sha256sum "$asset" > "$asset.sha256")
-          done
-          rm -r dist/archive
-
       - name: Upload release assets
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -348,12 +313,20 @@ jobs:
         run: |
           set -eu
           expected="hybro $VERSION"
-          for _ in 1 2 3 4 5 6 7 8 9 10; do
+          # A new version can take several minutes to become installable after
+          # npm publish returns (v0.4.0 needed more than 2.5).
+          installed=
+          for _ in $(seq 1 20); do
             if npm install --prefix /tmp/npm-cli "@hybroai/cli@$VERSION" >/dev/null 2>&1; then
+              installed=1
               break
             fi
-            sleep 15
+            sleep 30
           done
+          if [ -z "$installed" ]; then
+            echo "@hybroai/cli@$VERSION is still not installable from npm after 10 minutes." >&2
+            exit 1
+          fi
           npm_version=$(/tmp/npm-cli/node_modules/.bin/hybro --version)
           gh release download "v${VERSION}" --repo "$GITHUB_REPOSITORY" \
             --pattern hybro --pattern SHA256SUMS --dir /tmp/asset

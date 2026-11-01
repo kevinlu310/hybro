@@ -3,7 +3,10 @@ import { cleanup, fireEvent, render, screen } from '../../utils/test-utils'
 import { placeholderAgent } from '@/lib/network-agent'
 
 vi.mock('@/lib/auth', () => ({ useUser: () => ({ user: { id: 'u' }, isLoaded: true, isSignedIn: true }) }))
-vi.mock('@/hooks/useMcpStatus', () => ({ useMcpStatus: () => ({ status: 'ready', refresh: vi.fn() }) }))
+const refreshGateway = vi.hoisted(() => vi.fn())
+const refetchSetup = vi.hoisted(() => vi.fn())
+vi.mock('@/hooks/useMcpStatus', () => ({ useMcpStatus: () => ({ status: 'ready', refresh: refreshGateway }) }))
+vi.mock('@/hooks/useSetupStatus', () => ({ useSetupStatus: () => ({ data: undefined, isSuccess: false, refetch: refetchSetup }) }))
 const history = vi.hoisted(() => ({ isError: false, refetch: vi.fn() }))
 const refreshNetworks = vi.hoisted(() => vi.fn())
 vi.mock('@/hooks/useRoomHistory', () => ({ useRoomHistory: () => ({ refetch: history.refetch, data: { items: [{ conversation_id: 'r1', title: 'Trip plan', last_activity_at: '2026-10-10T00:00:00Z', is_pinned: false, pin_order: null, status: 'awaiting_input' }] }, dataUpdatedAt: Date.parse('2026-10-10T10:42:00Z'), isLoading: false, isError: history.isError }) }))
@@ -16,6 +19,7 @@ import { OverviewPage } from '@/components/overview/overview-page'
 
 afterEach(() => {
   cleanup()
+  vi.clearAllMocks()
   history.isError = false
 })
 
@@ -88,5 +92,13 @@ describe('OverviewPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Retry' }))
     expect(history.refetch).toHaveBeenCalledTimes(1)
     expect(refreshNetworks).toHaveBeenCalledTimes(1)
+  })
+
+  it('retries the setup and MCP checks too, since they fail the same way while Hybro starts', () => {
+    history.isError = true
+    render(<OverviewPage />)
+    fireEvent.click(screen.getByRole('button', { name: 'Retry' }))
+    expect(refetchSetup).toHaveBeenCalledTimes(1)
+    expect(refreshGateway).toHaveBeenCalledTimes(1)
   })
 })

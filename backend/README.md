@@ -323,7 +323,8 @@ agent's final `reply` and `replied_at`. Agents' questions to the owner and the
 owner's decisions are never included; a waiting request shows only
 `waiting_on_owner`. A request with no run event within
 `backend.session_run_start_grace_seconds` (10) of its send reports `failed`
-with `run_not_started`. Text is limited to 10,000 characters; `data` and files
+with `run_not_started`, unless the backend is still running the task that starts
+the run. Text is limited to 10,000 characters; `data` and files
 are not accepted. Retrying with the same `client_request_id`, including an
 earlier request's, returns that request's receipt without sending it again.
 

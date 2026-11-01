@@ -48,42 +48,18 @@ Release Please updates it through the `generic` entry in
 line. Keep the value and the comment on one line, or the release stops updating
 it.
 
-## Releasing 0.4.0
+## Minor versions
 
 `release-please-config.json` sets `bump-patch-for-minor-pre-major`, so `feat:`
-commits on 0.x only bump the patch. The merge commit that brings in the single
-image must therefore carry this footer, and the PR description must say so:
+commits on 0.x only bump the patch. To release the next minor version, give a
+commit on `main` a footer such as:
 
 ```text
-Release-As: 0.4.0
+Release-As: 0.5.0
 ```
 
-Without it, Release Please proposes 0.3.1. The Release workflow refuses a 0.3.x
-version from a tree without `docker-compose.yml`, so such a release publishes
-nothing; close that release PR, add the footer in an empty commit on `main`, and
-let Release Please propose 0.4.0. Never bump the versions by hand.
-
-## 0.4.0 compatibility archives
-
-A 0.3 CLI's `hybro upgrade` prints download steps for
-`hybro-<version>-<platform>.tar.gz` and its `.sha256`. For 0.4.0 only, the
-Release workflow also publishes those four archives (`darwin-arm64`,
-`darwin-x64`, `linux-arm64`, `linux-x64`), each holding the shell script at
-`hybro/hybro`, so the printed steps install the 0.4 script. Later releases
-publish only `hybro`, `install.sh`, and `SHA256SUMS`; remove the archive step
-from `release.yml` after 0.4.0 ships.
-
-## npm platform packages
-
-0.4 no longer publishes `@hybroai/cli-darwin-arm64`, `@hybroai/cli-darwin-x64`,
-`@hybroai/cli-linux-arm64`, or `@hybroai/cli-linux-x64`. After 0.4.0 is
-published, deprecate them once by hand:
-
-```sh
-for p in darwin-arm64 darwin-x64 linux-arm64 linux-x64; do
-  npm deprecate "@hybroai/cli-$p" "Replaced by @hybroai/cli 0.4, which no longer needs a platform package."
-done
-```
+A squash merge must keep the footer in the squash commit message. Never bump the
+versions by hand.
 
 ## Requirements
 

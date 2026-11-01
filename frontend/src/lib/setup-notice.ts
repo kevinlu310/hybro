@@ -21,7 +21,7 @@ type NoticeCopy = Omit<SetupNotice, 'code' | 'blocking'>
 const NOT_SET_UP: NoticeCopy = {
   tone: 'warning',
   title: 'Connect a model provider',
-  message: 'Room Chat and 4 sample agents need one. MCP and the Echo agent already work.',
+  message: 'Room Chat and 4 sample agents need one. Until then, MCP clients can use the Echo agent.',
   chatMessage: 'Room Chat needs a model to plan and answer. This stays until a provider works.',
   action: 'Set up provider',
 }
