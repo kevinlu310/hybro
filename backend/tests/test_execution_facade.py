@@ -530,6 +530,42 @@ async def test_schedule_orchestration_carries_live_mode_and_scope():
 
 
 @pytest.mark.asyncio
+async def test_scheduled_orchestration_is_pending_until_its_task_ends():
+    facade, _deps = _make_facade()
+    release = asyncio.Event()
+
+    async def route(request, message_id):
+        await release.wait()
+        raise RuntimeError("routing failed")
+
+    facade._route_orchestration = route
+    request = ExecutionRequest(
+        conversation_id="room-1", sender_id="user-1", client_request_id="cr-1"
+    )
+    ack = ExecutionAck(
+        conversation_id="room-1",
+        message_id="msg-1",
+        success=True,
+        should_start_orchestration=True,
+        preflight_outcome="ready",
+    )
+
+    assert facade.is_orchestration_pending("msg-1") is False
+    facade.schedule_orchestration(request, ack)
+    await asyncio.sleep(0)
+
+    assert facade.is_orchestration_pending("msg-1") is True
+    assert facade.is_orchestration_pending("msg-2") is False
+
+    # A failed task is no longer pending, so the session can report it.
+    release.set()
+    await asyncio.sleep(0)
+    await asyncio.sleep(0)
+
+    assert facade.is_orchestration_pending("msg-1") is False
+
+
+@pytest.mark.asyncio
 async def test_bound_canonical_active_run_reader_rejects_before_message_persistence():
     facade, deps = _make_facade()
     canonical_reader = SimpleNamespace(
@@ -1120,7 +1156,7 @@ async def test_cancel_inflight_tasks_interrupts_without_public_cancellation():
     facade, deps = _make_facade()
     task = facade._spawn_orchestration(
         wait_forever(),
-        name="execution-test",
+        message_id="msg-test",
     )
     await asyncio.sleep(0)
 

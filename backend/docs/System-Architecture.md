@@ -2582,7 +2582,11 @@ same run), or `failed` (the public `error_summary`) once `run_settled` arrives;
 `waiting_on_owner` while `run_waiting_input` is not yet followed by `run_resumed`
 or settlement; otherwise `working`. A request with no correlated run event
 `session_run_start_grace_seconds` after its send reports `failed` with
-`run_not_started`; `closed` takes precedence. The client `history` lists the
+`run_not_started`, unless `ExecutionEngine.is_orchestration_pending` says this
+process still runs the message's orchestration task, which creates the run; a
+loaded backend can take longer than the grace to emit the first event, and
+reporting `failed` then would flip to `completed` later. With several workers,
+only the worker that accepted the send knows the task. `closed` takes precedence. The client `history` lists the
 record's `requests` in send order, each resolved from one pass over the log
 grouped by `correlation_id`: the client message text from its
 `user_message_id`, the target agent from the message's

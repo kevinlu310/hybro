@@ -99,4 +99,4 @@ Sessions:
 
 | Field | Default | Meaning |
 |---|---|---|
-| `backend.session_run_start_grace_seconds` | `10` | Seconds after a send without any lifecycle event for the request before the session reports `failed` with `run_not_started`. Must be greater than 0. |
+| `backend.session_run_start_grace_seconds` | `10` | Seconds after a send without any lifecycle event for the request before the session reports `failed` with `run_not_started`, unless this process is still running the task that starts the run. Must be greater than 0. |
