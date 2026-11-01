@@ -10,6 +10,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 import shutil
 import signal
 import subprocess
@@ -21,7 +22,10 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts" / "hybro"
-VERSION = "0.3.0"
+# The tests follow the script's own version, which Release Please bumps.
+VERSION = re.search(r'^HYBRO_VERSION="([0-9.]+)"', SCRIPT.read_text(), re.M).group(1)
+_major, _minor, _ = VERSION.split(".")
+NEWER = f"{_major}.{int(_minor) + 1}.0"
 IMAGE = f"ghcr.io/hybroai/hybro:{VERSION}"
 NEW_SCRIPT = "#!/bin/sh\nprintf 'NEW %s\\n' \"$*\"\n"
 
@@ -579,21 +583,21 @@ def test_fresh_starts_over_old_data_and_replaces_an_unfinished_volume(cli):
 
 def test_daily_update_notice_is_cached(cli):
     cli.state["images"] = [IMAGE]
-    cli.state["latest"] = "0.4.1"
+    cli.state["latest"] = NEWER
     result = cli.run("-d", HYBRO_NO_UPDATE_CHECK="")
-    assert "Hybro 0.4.1 is available (you have 0.3.0)" in result.stdout
-    assert (cli.hybro_home / "update-check").read_text() == "0.4.1\n"
+    assert f"Hybro {NEWER} is available (you have {VERSION})" in result.stdout
+    assert (cli.hybro_home / "update-check").read_text() == f"{NEWER}\n"
     assert len(cli.calls("curl")) == 1
     assert "--max-time" in cli.calls("curl")[0]
     cli.state["containers"] = {}
     result = cli.run("-d", HYBRO_NO_UPDATE_CHECK="")
-    assert "0.4.1 is available" in result.stdout
+    assert f"{NEWER} is available" in result.stdout
     assert cli.calls("curl") == []
 
 
 def test_update_notice_can_be_disabled_and_survives_failures(cli):
     cli.state["images"] = [IMAGE]
-    cli.state["latest"] = "0.4.1"
+    cli.state["latest"] = NEWER
     assert "available" not in cli.run("-d").stdout
     assert cli.calls("curl") == []
     cli.state["containers"] = {}
@@ -620,9 +624,9 @@ def test_stale_or_invalid_cache_is_ignored(cli):
 
 
 def test_upgrade_check(cli):
-    cli.state["latest"] = "0.4.0"
+    cli.state["latest"] = NEWER
     result = cli.run("upgrade", "--check")
-    assert result.returncode == 1 and "Hybro 0.4.0 is available" in result.stdout
+    assert result.returncode == 1 and f"Hybro {NEWER} is available" in result.stdout
     cli.state["latest"] = VERSION
     result = cli.run("upgrade", "--check")
     assert result.returncode == 0 and "latest release" in result.stdout
@@ -630,21 +634,21 @@ def test_upgrade_check(cli):
 
 
 def test_upgrade_installs_the_verified_script_and_continues(cli):
-    cli.state["latest"] = "0.4.0"
+    cli.state["latest"] = NEWER
     result = cli.run("upgrade")
     assert result.returncode == 0, cli.output
     assert cli.script.read_text() == NEW_SCRIPT
     assert "NEW upgrade --continue" in result.stdout
     urls = [call[-1] for call in cli.calls("curl")]
     assert urls[1:] == [
-        "https://github.com/hybroai/hybro/releases/download/v0.4.0/hybro",
-        "https://github.com/hybroai/hybro/releases/download/v0.4.0/SHA256SUMS",
+        f"https://github.com/hybroai/hybro/releases/download/v{NEWER}/hybro",
+        f"https://github.com/hybroai/hybro/releases/download/v{NEWER}/SHA256SUMS",
     ]
     assert sorted(p.name for p in cli.script.parent.iterdir()) == ["hybro"]
 
 
 def test_upgrade_refuses_a_checksum_mismatch(cli):
-    cli.state["latest"] = "0.4.0"
+    cli.state["latest"] = NEWER
     cli.state["sum"] = "f" * 64
     result = cli.run("upgrade")
     assert result.returncode == 1 and "does not match SHA256SUMS" in result.stderr
@@ -658,11 +662,11 @@ def test_upgrade_through_npm(cli):
     link = cli.tmp / "npm" / "bin" / "hybro"
     link.parent.mkdir(parents=True)
     link.symlink_to(Path("../lib/node_modules/@hybroai/cli/bin/hybro"))
-    cli.state["latest"] = "0.4.0"
+    cli.state["latest"] = NEWER
     cli.state["npm_target"] = str(package)
     result = cli.run("upgrade", script=link)
     assert result.returncode == 0, cli.output
-    assert cli.calls("npm") == [["install", "-g", "@hybroai/cli@0.4.0"]]
+    assert cli.calls("npm") == [["install", "-g", f"@hybroai/cli@{NEWER}"]]
     assert [call for call in cli.calls("curl") if "-o" in call] == []
     assert "NEW upgrade --continue" in result.stdout
 
