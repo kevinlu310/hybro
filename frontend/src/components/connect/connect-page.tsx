@@ -200,7 +200,7 @@ export function ConnectPage({ kind }: { kind: AccessKind }) {
   return (
     <div className="page-container">
       <div className="page-content flex min-w-0 flex-col gap-6">
-        <PageHeader title="Connect" />
+        <PageHeader title="Access" />
         <Tabs value={kind} onValueChange={value => { if (value !== kind) router.push(value === 'mcp' ? routes.connectMcp : routes.connectApi, { scroll: false }) }} className="gap-6">
           <TabsList aria-label="Connection methods">
             <TabsTrigger value="mcp" className="min-h-9">MCP</TabsTrigger>

@@ -200,13 +200,15 @@ a ready-made multi-agent chat.
 
 MCP is part of the container and shares its address: `http://localhost:3000/mcp`
 for a released install, `http://localhost:3100/mcp` from a checkout. In the app,
-open **Connect** (`/connect/mcp`) to copy the URL or a setup snippet for Claude
+open **Access** (`/connect/mcp`) to copy the URL or a setup snippet for Claude
 Code, Cursor, Codex, VS Code, or another assistant. The Overview **MCP gateway**
 tile shows whether MCP is reachable. Add the server manually to your client;
-Hybro does not automatically discover or register MCP clients.
+Hybro does not automatically discover or register MCP clients. Sessions that
+clients open this way appear under **Inbox**, where you answer any question or
+approval an agent raises.
 
 <p align="center">
-  <img src="assets/screenshots/connect.png" alt="The Connect page with the MCP address and client setup commands" width="800">
+  <img src="assets/screenshots/connect.png" alt="The Access page with the MCP address and client setup commands" width="800">
 </p>
 
 ```json

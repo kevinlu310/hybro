@@ -44,7 +44,7 @@ test.describe('Unified portal routing', () => {
     await page.goto('/')
     await expect(page).toHaveURL(/\/$/)
     await expect(page.getByRole('heading', { level: 1, name: 'Overview' })).toBeAttached()
-    await expect(page.getByRole('heading', { name: 'Recent sessions' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Inbox' })).toBeVisible()
     await expect(page.getByRole('heading', { name: 'Recent chats' })).toBeVisible()
   })
 
@@ -87,7 +87,7 @@ test.describe('Unified portal routing', () => {
       await openNavigation()
       await expect(page.locator('[data-sidebar="sidebar"]')).toHaveCount(1)
       await expect(page.getByRole('region', { name: 'History', exact: true })).toHaveCount(0)
-      for (const name of ['Overview', 'Network', 'Sessions', 'Chats', 'Connect']) {
+      for (const name of ['Overview', 'Network', 'Chats', 'Inbox', 'Access']) {
         await expect(modules.getByRole('link', { name: new RegExp(`^${name}`) })).toHaveCount(1)
       }
       if (width >= 768) {
@@ -98,7 +98,7 @@ test.describe('Unified portal routing', () => {
       if (width < 768) await expect(page.getByRole('dialog')).toHaveCount(0)
 
       await openNavigation()
-      await modules.getByRole('link', { name: /^Connect/ }).click()
+      await modules.getByRole('link', { name: /^Access/ }).click()
       await expect(page).toHaveURL(/\/connect\/mcp$/)
       await openNavigation()
       await expect(page.locator('[data-sidebar="sidebar"]')).toHaveCount(1)

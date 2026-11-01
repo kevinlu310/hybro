@@ -6,7 +6,7 @@
 
 ## 1. Overview
 
-Hybro Frontend is a Next.js App Router application for the Hybro multi-agent platform. A single unified portal provides an Overview, the Network workspace (agents, subnets, and their relationships), agent registration and detail pages, Rooms (chat, room timelines, HITL replies, file attachments), Connect pages for MCP and HTTP API access, pricing, and public information pages.
+Hybro Frontend is a Next.js App Router application for the Hybro multi-agent platform. A single unified portal provides an Overview, the Network workspace (agents, subnets, and their relationships), agent registration and detail pages, Rooms (chat, room timelines, HITL replies, file attachments), the Inbox of client sessions, Access pages for MCP and HTTP API access, pricing, and public information pages.
 
 The app talks to the backend through REST APIs and room-scoped Server-Sent Events (SSE). The room UI uses normalized message state, transient streaming buffers, selector-driven view models, and a conversation renderer built around turns rather than raw message rows.
 
@@ -92,7 +92,7 @@ image serves every install:
 carries only the traced server and static files. When `HYBRO_FRONTEND_CONFIG`
 is present at build time (`npm run dev`) it compiles server-side rewrites: its
 `api_prefix` to the backend on 8000, and `/mcp` and `/mcp/*` to the native MCP
-server on `127.0.0.1:8001`, so the Connect page's `{origin}/mcp` answers in
+server on `127.0.0.1:8001`, so the Access page's `{origin}/mcp` answers in
 development too. The image builds without a projection and compiles no
 rewrites, because Caddy routes the API and MCP on the same port. `src/app/layout.tsx` sets `dynamic = "force-dynamic"`, so
 no page is prerendered with one deployment's settings and server code always
@@ -108,10 +108,10 @@ listener), and `mcp_disabled` true on a public listener. The standalone server l
 An empty `api_base_url` means same origin: `getApiUrl` then returns a relative
 `{api_prefix}/...` path, which the browser sends to the address it loaded the
 page from (Caddy in the image; the Next rewrite in `npm run dev`). API modules therefore never pass these URLs to `new URL()`; query
-strings are appended with `URLSearchParams`. In this mode the Connect page shows
+strings are appended with `URLSearchParams`. In this mode the Access page shows
 the page origin as the API base URL; otherwise it shows the projection's
 `api_base_url`. The MCP address is always `{origin}/mcp`. The optional
-`mcp_disabled` flag is derived, not user-settable; when true the Connect page
+`mcp_disabled` flag is derived, not user-settable; when true the Access page
 says MCP is disabled on public listeners.
 
 Neither dotenv files nor `auth.json` are browser configuration inputs. Server
@@ -166,7 +166,7 @@ src/app/
     |-- chat/page.tsx
     |-- pricing/page.tsx
     |-- room/[id]/page.tsx
-    |-- sessions/page.tsx        # Sessions workspace: searchable list, no selection
+    |-- sessions/page.tsx        # Inbox: searchable session list, no selection
     |-- sessions/[id]/page.tsx   # same workspace with the session record selected
     |-- agents/page.tsx          # redirect -> /network
     |-- agents/[id]/page.tsx     # redirect -> /network/agents/[id]
@@ -195,7 +195,7 @@ The application exposes one unprefixed route tree with four destinations:
 - `/network/agents/[id]` and `/network/agents/new`: agent detail and remote
   agent registration.
 - `/chat` and `/room/[id]`: Chats (chat home and room workspace).
-- `/connect/mcp` and `/connect/api`: Connect pages (MCP and API tabs).
+- `/connect/mcp` and `/connect/api`: Access pages (MCP and API tabs).
 
 There is no host-based route rewrite. `/agents*`, `/networks`,
 `/access/*`, and `/manage*` paths are page-level `redirect()` routes to their
@@ -244,10 +244,10 @@ src/components/
 |-- composer/                 # chat composer shell and HITL response bar
 |-- portal/                   # shared sidebar, header, footer, ChatHistory
 |-- overview/                 # Overview page and static mini topology
-|-- sessions/                 # Sessions list (SessionsTablePage) and ticket (SessionRecordView)
+|-- sessions/                 # Inbox list (SessionsTablePage) and ticket (SessionRecordView)
 |-- networks/                 # Network workspace: toolbar, SVG graph, structure view, details panel, add-to-subnet menu, Agent picker
 |-- subnets/                  # one subnet dialog (create/edit), delete confirmation, room/chat dialog host
-|-- connect/                  # Connect pages, per-assistant setups, copyable access materials
+|-- connect/                  # Access pages, per-assistant setups, copyable access materials
 |-- providers/                # React Query provider
 |-- settings/                 # settings dialog sections (account, model provider) and helpers
 |-- setup/                    # model provider banners
@@ -314,7 +314,7 @@ src/hooks/
 |-- useRoomHistory.ts          # shared room history query (sidebar, Chats badge, Overview)
 |-- useRoomFile.ts             # authenticated room-file blob and preview lifecycle
 |-- useSessions.ts             # owner session list, polled every 15 s (sidebar badge, Overview, /sessions)
-|-- useSessionListUrlState.ts  # Sessions list view state bound to the URL
+|-- useSessionListUrlState.ts  # Inbox list view state bound to the URL
 |-- useHitlInteractionController.ts # HITL questionnaire state reducer (lib/hitl/interaction-controller)
 |-- useDetailPaneScroll.ts     # Agent detail pane scroll restore and tail follow
 |-- useMcpStatus.ts            # shared /hybro-mcp gateway status query
@@ -921,16 +921,15 @@ The `(portal)` route group provides one shared shell without adding a URL
 segment.
 
 - `/`: Overview, stacked line by line: a visible title with **Add agent** and
-  **New chat**; four clickable tiles in the order Sessions (open, and how many
-  need you; opens `/sessions` filtered to Needs you when any do), Chats (how
-  many need input), Agents (offline count when any), and MCP gateway (its
-  status, plus "Check the connection" only when it is not ready). Each tile's
-  number takes its side-menu icon color: Sessions and Chats green
+  **New chat**; four clickable tiles in the side-menu order Chats (how many
+  need input), Inbox (open sessions, and how many need you; opens `/sessions`
+  filtered to Needs you when any do), Agents (offline count when any), and MCP
+  gateway (its status, plus "Check the connection" only when it is not ready).
+  Each tile's number takes its side-menu icon color: Chats and Inbox green
   (`text-icon-create`), Agents blue (`text-icon-network`), and MCP gateway
-  purple (`text-hybro-bro`, also the Connect icon); Recent
-  sessions and Recent chats (five each, anything waiting on the owner first,
-  then the latest) in one shared row design of title, a grey line of who and
-  when, and status; the static mini topology linking to `/network`; and
+  purple (`text-hybro-bro`, also the Access icon); Recent chats and Inbox
+  (five each, anything waiting on the owner first, then the latest) in one
+  shared row design of title, a grey line of who and when, and status; the static mini topology linking to `/network`; and
   Most-called agents with their avatar and call count, last. A model provider
   banner appears under the title when setup needs attention (see Model
   provider setup). Derivation lives
@@ -970,7 +969,7 @@ segment.
   pending questions poll every 4 s while the session is working or waiting
   and every 20 s otherwise. Times are formatted in English
   (`src/lib/session-format.ts`)
-  whatever the browser locale. The sidebar **Sessions** entry carries its own
+  whatever the browser locale. The sidebar **Inbox** entry carries its own
   badge with the number of sessions in `waiting_on_owner`; `useSessions` polls
   unconditionally every 15 s because sessions are created outside the app.
   Chat history and the Overview Chats tile exclude session containers because
@@ -979,7 +978,7 @@ segment.
 - `/network/agents/[id]`: AgentCard detail with Chat, Documentation, Share, and
   Remote-only Unregister actions, plus a Subnets section with **Add to subnet**.
 - `/network/agents/new`: Remote agent registration. A 409 conflict toast shows the backend `detail.message` (`registrationConflictMessage`).
-- `/connect/mcp`, `/connect/api`: Connect pages with a scope picker.
+- `/connect/mcp`, `/connect/api`: Access pages with a scope picker.
 - `/about`, `/pricing`: public pages.
 
 Agent API responses use the backend `AgentRouteResponse` shape (flat
@@ -1019,13 +1018,18 @@ destinations; the active item's icon uses the primary color:
 
 - **Overview** opens `/` (exact match only).
 - **Network** opens `/network` and stays active on `/network/*`.
-- **Sessions** opens `/sessions` and stays active on `/sessions/*`. It shows a
-  count badge for sessions in `waiting_on_owner`.
 - **Chats** opens `/chat` and remains active on Room routes. It shows a count
   badge (a dot when collapsed) for rooms with `awaiting_input` status, read from
   the shared `useRoomHistory` query; the accessible name becomes
   "Chats, N need input".
-- **Connect** opens `/connect/mcp` and stays active on `/connect/*`.
+- **Inbox** opens `/sessions` and stays active on `/sessions/*`. It lists the
+  sessions that outside clients open through MCP or the Sessions API and shows
+  a count badge for sessions in `waiting_on_owner`.
+- **Access** opens `/connect/mcp` and stays active on `/connect/*`.
+
+The order tells the story in sequence: Chats is where a new user starts, the
+Inbox fills once a client is set up, and Access is where that client is set
+up.
 
 The same primary menu is used on `/about`, the other existing portal pages, and
 the feature pages. Chat and Room routes add a separate History column
@@ -1033,7 +1037,7 @@ immediately to its right on desktop. That column has no collapse control and
 stays visible when the primary sidebar collapses. It starts with a secondary
 **New chat** action button that opens `/chat`; it is a page action rather than a
 navigation item, so it never mirrors the primary menu's active styling.
-Network and Connect do not add a second column. The Logo, primary collapse control,
+Network, Inbox, and Access do not add a second column. The Logo, primary collapse control,
 Documentation, Discord/community, and full user panel retain their original
 shared components.
 
@@ -1134,7 +1138,7 @@ without changing `scope`. Below 900px the scope list becomes a select, rows
 stack, and the details panel becomes a bottom sheet.
 
 Details panel: a subnet shows name, description, copyable ID (monospace),
-members with status indicators, and **Manage members**, **Connect** (opens
+members with status indicators, and **Manage members**, **Access** (opens
 `/connect/mcp`), and **Delete subnet** (danger,
 confirmed in `SubnetDeleteDialog`). An agent shows avatar, name, version and
 provider, description, status, source, room calls, skills, subnet chips, **Open
@@ -1164,10 +1168,10 @@ catalog read with saved data shows an inline alert with Retry. Writes apply the
 server's canonical result and cancel in-flight reads. Dragging a node fixes only
 that node's `fx/fy` until release. Node positions are transient and not persisted.
 
-### Connect workspace
+### Access workspace
 
 `/connect/mcp` and `/connect/api` render one `ConnectPage`
-(`src/components/connect/connect-page.tsx`) titled "Connect" with a top-level
+(`src/components/connect/connect-page.tsx`) titled "Access" with a top-level
 MCP / API tab that navigates between the two routes. The page is deliberately
 minimal and written for a non-technical reader.
 
@@ -1333,7 +1337,7 @@ component test that lets MSW answer real API-client requests calls
 `stubFetchWithoutSignal()` in `beforeEach` and `vi.unstubAllGlobals()` in
 `afterEach`.
 
-Unit coverage is broad across components, hooks, API clients, room timeline logic, selectors, and stores, including the Network URL state, search, graph label rules, structure grouping, status mapping, Overview derivation, and access materials. Playwright coverage is organized around auth, chat, room, room timeline, authenticated flows, error handling, portal routing and redirects, the Network workspace, and the Connect pages.
+Unit coverage is broad across components, hooks, API clients, room timeline logic, selectors, and stores, including the Network URL state, search, graph label rules, structure grouping, status mapping, Overview derivation, and access materials. Playwright coverage is organized around auth, chat, room, room timeline, authenticated flows, error handling, portal routing and redirects, the Network workspace, and the Access pages.
 
 ## 15. Current Directory Inventory
 
@@ -1474,7 +1478,7 @@ contradiction rejects the whole snapshot and requests recovery without advancing
 watermark. This lets snapshot-first hydration recreate the pending message entity and
 composer response controls atomically. The Composer exclusively owns
 question text and answer controls through the shadcn `Questionnaire` primitive composed
-inside one flat bordered card (`HitlResponseBar`, shared with Sessions). Several
+inside one flat bordered card (`HitlResponseBar`, shared with the Inbox). Several
 questions in one interaction show as header tabs that mark answered questions; choices
 show their labels, descriptions, and number shortcuts; `allow_other` adds an Other row
 with its own text field; optional questions offer Skip (or Skip and send on the last

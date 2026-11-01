@@ -24,10 +24,10 @@ afterEach(() => {
 
 const lastCopied = () => String(vi.mocked(navigator.clipboard.writeText).mock.lastCall?.[0] ?? '')
 
-describe('Connect page', () => {
+describe('Access page', () => {
   it('shows the MCP address, assistant snippets, and features without steps or scope', () => {
     render(<ConnectPage kind="mcp" />)
-    expect(screen.getByRole('heading', { level: 1, name: 'Connect' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1, name: 'Access' })).toBeInTheDocument()
     expect(screen.getByRole('tab', { name: 'MCP' })).toHaveAttribute('aria-selected', 'true')
     expect(screen.getByText(MCP_URL)).toBeInTheDocument()
     expect(screen.getByRole('tab', { name: 'Claude Code' })).toHaveAttribute('aria-selected', 'true')

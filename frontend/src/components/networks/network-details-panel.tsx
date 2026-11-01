@@ -169,7 +169,7 @@ export function NetworkDetailsPanel({
               <Pencil data-icon="inline-start" aria-hidden="true" />Manage members
             </Button>
             <Button variant="secondary" size="sm" asChild>
-              <Link href={routes.connectMcp}><Plug data-icon="inline-start" aria-hidden="true" />Connect</Link>
+              <Link href={routes.connectMcp}><Plug data-icon="inline-start" aria-hidden="true" />Access</Link>
             </Button>
             <Button variant="danger" size="sm" onClick={onDelete} disabled={pending}>
               <Trash2 data-icon="inline-start" aria-hidden="true" />Delete subnet

@@ -9,7 +9,7 @@ vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn() }) }))
 
 afterEach(cleanup)
 
-describe('Connect page with a same-origin API', () => {
+describe('Access page with a same-origin API', () => {
   it('server-renders the API tab before the page origin is known', () => {
     const html = renderToString(<ConnectPage kind="api" />)
     expect(html).toContain('/api/v1/agents/discovery')
