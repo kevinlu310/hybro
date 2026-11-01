@@ -245,6 +245,8 @@ class FakeEngine:
     # Events to append when the run is scheduled, as (type, payload) pairs.
     on_schedule: list[tuple[str, dict[str, Any]]] = field(default_factory=list)
     run_id: str = "run-1"
+    # Message ids whose orchestration task has not ended.
+    pending_messages: set[str] = field(default_factory=set)
     _message_counter: int = 0
 
     async def execute(self, request: ExecutionRequest) -> ExecutionAck:
@@ -277,6 +279,9 @@ class FakeEngine:
             (request.conversation_id, request.client_request_id, kind, payload)
             for kind, payload in self.on_schedule
         ]
+
+    def is_orchestration_pending(self, message_id: str) -> bool:
+        return message_id in self.pending_messages
 
     async def flush(self) -> None:
         for conversation_id, correlation, kind, payload in getattr(
@@ -911,6 +916,29 @@ async def test_no_correlated_event_reports_run_not_started_after_the_grace():
     assert (await h.check()).state == "working"
 
     h.clock.now = 2.0
+    status = await h.check()
+
+    assert status.state == "failed"
+    assert status.reason == "run_not_started"
+
+
+@pytest.mark.asyncio
+async def test_pending_orchestration_reports_working_past_the_grace():
+    # A loaded backend can take longer than the grace to emit the first run
+    # event; reporting failed then would flip to completed later.
+    h = make_harness(on_schedule=[], start_grace_seconds=2.0)
+    h.engine.pending_messages.add("msg-1")
+    receipt = await h.send()
+    h.clock.now = 30.0
+
+    status = await h.check()
+
+    assert receipt.state == "working"
+    assert status.state == "working"
+    assert status.reason is None
+    assert [(item.state, item.reason) for item in status.history] == [("working", None)]
+
+    h.engine.pending_messages.clear()
     status = await h.check()
 
     assert status.state == "failed"

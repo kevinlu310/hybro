@@ -641,6 +641,7 @@ def test_protocol_methods_match_design_doc():
             "execute",
             "start_orchestration",
             "schedule_orchestration",
+            "is_orchestration_pending",
             "cancel",
             "get_runs_for_room",
             "get_latest_runs_for_rooms",

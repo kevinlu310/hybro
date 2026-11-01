@@ -295,7 +295,9 @@ hybro --fresh      # or start with an empty volume and keep the old data aside
 ```
 
 npm users get there with the 0.3 command `hybro upgrade`, which installs the
-0.4 script. The migration stops the 0.3 containers, checks that Docker has twice
+0.4 script. A 0.3 install from a release archive installs the new script with
+`curl -fsSL https://hybro.ai/install.sh | sh` instead; only the 0.4.0 release has
+the archives that 0.3's `hybro upgrade` downloads. The migration stops the 0.3 containers, checks that Docker has twice
 the 0.3 data size free, copies MongoDB and room files into `hybro-data` from
 read-only mounts, opens the copy, records the document count of each collection
 in `/data/hybro-volume.json`, and starts Hybro. Redis data is not migrated; it

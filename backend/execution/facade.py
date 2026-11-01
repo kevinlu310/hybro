@@ -116,6 +116,8 @@ class ExecutionFacade:
         self._client_request_id_resolver = client_request_id_resolver
         self._task_factory = task_factory
         self._inflight: set[asyncio.Task] = set()
+        # User message ids whose orchestration task has not ended.
+        self._orchestrating: set[str] = set()
 
     def bind_orchestrator_router(self, router: Any) -> None:
         """Attach the orchestrator ingress adapter after composition."""
@@ -416,7 +418,7 @@ class ExecutionFacade:
         ):
             task = self._spawn_orchestration(
                 self._route_orchestration(request, ack.message_id),
-                name=f"execution-orchestrate-{ack.message_id}",
+                message_id=ack.message_id,
             )
         await task
 
@@ -435,20 +437,30 @@ class ExecutionFacade:
         ):
             self._spawn_orchestration(
                 self._route_orchestration(request, ack.message_id),
-                name=f"execution-orchestrate-{ack.message_id}",
+                message_id=ack.message_id,
             )
+
+    def is_orchestration_pending(self, message_id: str) -> bool:
+        """Whether this process still runs the message's orchestration task.
+
+        The task creates the run, so a request without run events is not yet
+        known to have failed while this is true.
+        """
+        return message_id in self._orchestrating
 
     def _spawn_orchestration(
         self,
         coro,
         *,
-        name: str,
+        message_id: str,
     ) -> asyncio.Task[Any]:
-        task = self._task_factory(coro, name=name)
+        task = self._task_factory(coro, name=f"execution-orchestrate-{message_id}")
         self._inflight.add(task)
+        self._orchestrating.add(message_id)
 
         def _on_done(done: asyncio.Task) -> None:
             self._inflight.discard(done)
+            self._orchestrating.discard(message_id)
             if done.cancelled():
                 return
             exc = done.exception()

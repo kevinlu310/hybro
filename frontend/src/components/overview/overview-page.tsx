@@ -16,6 +16,7 @@ import { useNetworks } from '@/hooks/useNetworks'
 import { useRoomHistory } from '@/hooks/useRoomHistory'
 import { useSessions } from '@/hooks/useSessions'
 import { useMcpStatus } from '@/hooks/useMcpStatus'
+import { useSetupStatus } from '@/hooks/useSetupStatus'
 import { useUser } from '@/lib/auth'
 import { routes } from '@/lib/routes'
 import { formatSessionTime, sessionAgentNames } from '@/lib/session-format'
@@ -101,12 +102,21 @@ export function OverviewPage() {
   const history = useRoomHistory({ userId: user?.id ?? '', enabled: signedIn })
   const sessionList = useSessions({ userId: user?.id ?? '', enabled: signedIn })
   const gateway = useMcpStatus()
+  const setupStatus = useSetupStatus()
   const rooms = history.data?.items ?? []
   const sessions = sessionList.data?.sessions ?? []
   const loading = data.loading || data.agentsLoading || history.isLoading
   const metrics = overviewMetrics({ agents: data.agents, networks: data.networks, rooms, sessions })
   const failed = data.error || data.agentsError || (history.isError ? "Chats couldn't load." : null)
   const topAgents = topAgentsByCalls(data.agents, RECENT)
+  // A load during startup fails every check at once, and the setup status
+  // stops polling after an error, so Retry runs them all again.
+  const retry = () => {
+    void data.refresh()
+    void history.refetch()
+    void setupStatus.refetch()
+    gateway.refresh()
+  }
 
   return (
     <div className="page-container">
@@ -127,7 +137,7 @@ export function OverviewPage() {
           <Alert variant="destructive">
             <AlertDescription className="flex flex-wrap items-center gap-2">
               <span>{failed}</span>
-              <Button variant="secondary" size="sm" onClick={() => { void data.refresh(); void history.refetch() }}><RefreshCw data-icon="inline-start" aria-hidden="true" />Retry</Button>
+              <Button variant="secondary" size="sm" onClick={retry}><RefreshCw data-icon="inline-start" aria-hidden="true" />Retry</Button>
             </AlertDescription>
           </Alert>
         ) : null}

@@ -28,7 +28,7 @@ describe('Overview setup banner', () => {
     render(<OverviewSetupBanner />)
     const banner = await screen.findByTestId('setup-banner')
     expect(banner).toHaveTextContent('Connect a model provider')
-    expect(banner).toHaveTextContent('Room Chat and 4 sample agents need one. MCP and the Echo agent already work.')
+    expect(banner).toHaveTextContent('Room Chat and 4 sample agents need one. Until then, MCP clients can use the Echo agent.')
     expect(banner).toHaveAttribute('data-tone', 'warning')
     expect(screen.getByRole('link', { name: 'Set up provider' })).toHaveAttribute('href', '/?settings=model-provider')
     fireEvent.click(screen.getByRole('button', { name: 'Dismiss' }))

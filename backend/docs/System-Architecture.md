@@ -1845,7 +1845,8 @@ Platform-reserved metadata overrides owner collisions. If a model omits
 `context_refs`, prepared-invocation freezing includes only compatible context
 refs owned by the exact root user message; a non-empty explicit selection stays
 exact, and artifacts or attachments, including those carried from earlier turns,
-are never added implicitly. The frozen
+are never added implicitly. Passthrough Runs skip that implicit context, since
+their `task` is already the user's message verbatim. The frozen
 manifest and digest make this replayable. The model sees earlier calls' `task`
 arguments prefixed with `[historical plan, not evidence]`; `AgentToolInput`
 strips that label from the start of a new `task`, so a copied plan never
@@ -2581,7 +2582,11 @@ same run), or `failed` (the public `error_summary`) once `run_settled` arrives;
 `waiting_on_owner` while `run_waiting_input` is not yet followed by `run_resumed`
 or settlement; otherwise `working`. A request with no correlated run event
 `session_run_start_grace_seconds` after its send reports `failed` with
-`run_not_started`; `closed` takes precedence. The client `history` lists the
+`run_not_started`, unless `ExecutionEngine.is_orchestration_pending` says this
+process still runs the message's orchestration task, which creates the run; a
+loaded backend can take longer than the grace to emit the first event, and
+reporting `failed` then would flip to `completed` later. With several workers,
+only the worker that accepted the send knows the task. `closed` takes precedence. The client `history` lists the
 record's `requests` in send order, each resolved from one pass over the log
 grouped by `correlation_id`: the client message text from its
 `user_message_id`, the target agent from the message's
