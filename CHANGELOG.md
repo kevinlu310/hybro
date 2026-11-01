@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.1](https://github.com/hybroai/hybro/compare/v0.4.0...v0.4.1) (2026-11-01)
+
+
+### Bug Fixes
+
+* 0.4.0 follow-ups (release workflow, session sends, Overview, Network list) ([db34f06](https://github.com/hybroai/hybro/commit/db34f0656dc293d16622b3ea8c0d908565095874))
+* **execution:** stop resending the user's text as context on passthrough runs ([3070a0f](https://github.com/hybroai/hybro/commit/3070a0f061c05a78792250f6c9ddab4126d36ef4))
+* **frontend:** retry setup and MCP checks, correct the setup banner, keep Network names readable ([a26281c](https://github.com/hybroai/hybro/commit/a26281cc7b65e66959580b6552bc08a9412a7f5a))
+* **session:** keep a send working while its orchestration task is pending ([6431b3c](https://github.com/hybroai/hybro/commit/6431b3cc531c47a5b77abc67f57b75ee60a10fb2))
+
 ## [0.4.0](https://github.com/hybroai/hybro/compare/v0.3.0...v0.4.0) (2026-11-01)
 
 
