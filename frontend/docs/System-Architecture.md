@@ -978,7 +978,7 @@ segment.
 - `/network/agents/[id]`: AgentCard detail with Chat, Documentation, Share, and
   Remote-only Unregister actions, plus a Subnets section with **Add to subnet**.
 - `/network/agents/new`: Remote agent registration. A 409 conflict toast shows the backend `detail.message` (`registrationConflictMessage`).
-- `/connect/mcp`, `/connect/api`: Access pages with a scope picker.
+- `/connect/mcp`, `/connect/api`: Access pages (MCP and API tabs, no scope control).
 - `/about`, `/pricing`: public pages.
 
 Agent API responses use the backend `AgentRouteResponse` shape (flat
